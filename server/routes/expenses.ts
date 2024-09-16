@@ -36,7 +36,7 @@ export const expenses = new Hono()
   })
   .post(`/`, zValidator(`json`, postExpenseSchema), async ctx => {
     const expense = ctx.req.valid(`json`)
-    mockExpenses.push({ ...expense, id: ++mockExpenses.length })
+    mockExpenses.push({ ...expense, id: mockExpenses.length + 1 })
     return ctx.json(expense)
   })
   .get(`total`, ctx => {

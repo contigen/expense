@@ -1,23 +1,37 @@
-import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader } from './ui/card'
 import { api } from '../lib/api'
+import { useQuery } from '@tanstack/react-query'
+import { Spinner } from './ui/spinner'
+
+async function getExpensesTotal() {
+  const res = await api.expenses[`total`].$get()
+  if (!res.ok) throw new Error(`Request failed`)
+  const total = await res.json()
+  return total
+}
 
 export function ExpenseCard() {
-  const [totalSpent, setTotalSpent] = useState(0)
+  const {
+    isPending,
+    error: err,
+    data,
+  } = useQuery({
+    queryKey: [`total-expense`],
+    queryFn: getExpensesTotal,
+  })
+  if (isPending)
+    return (
+      <div className='mx-auto my-4 w-max'>
+        <Spinner />
+      </div>
+    )
+  if (err) return err.message
 
-  useEffect(() => {
-    async function getExpensesTotal() {
-      const res = await api.expenses[`total`].$get()
-      const total = await res.json()
-      setTotalSpent(total.totalExpense)
-    }
-    getExpensesTotal()
-  }, [])
   return (
-    <Card className='mx-auto w-max px-4 my-4'>
+    <Card className='px-4 mx-auto my-4 w-max'>
       <CardHeader>Total Spent</CardHeader>
       <CardDescription>The total amount you've spent</CardDescription>
-      <CardContent>{totalSpent}</CardContent>
+      <CardContent>{data.totalExpense}</CardContent>
     </Card>
   )
 }
